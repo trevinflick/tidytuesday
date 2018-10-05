@@ -73,7 +73,7 @@ easter_births %>%
             nudge_x = 2, nudge_y = -100) +
   geom_hline(yintercept = 7285, color = "red") +
   geom_line() +
-  geom_text(aes( 7, 7285, label = "non-Easter Sunday avg.", vjust = 1.2), 
+  geom_text(data = filter(easter_births, day == 7), label = "non-Easter Sunday avg.", vjust = 1.5, 
             color = "red", size = 3) +
   labs(x = "", y = "births", title = "Fewer babies are born on Easter",
        subtitle = "U.S. births: two weeks before and after Easter \n(average births 2000-2014)") +
