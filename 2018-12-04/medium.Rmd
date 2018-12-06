@@ -1,0 +1,139 @@
+---
+title: "Medium Articles"
+author: "Trevin Flickinger"
+date: "12/4/2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(readr)
+library(dplyr)
+library(tidyr)
+library(purrr)
+library(ggplot2)
+```
+
+Dataset from Kaggle:
+[Original data](https://www.kaggle.com/harrisonjansma/medium-stories)
+
+
+```{r}
+medium <- read_csv("Medium_Clean.csv")
+```
+
+```{r}
+medium %>%
+  sample_n(10) %>%
+  View()
+```
+
+
+```{r}
+medium %>%
+  sample_n(10000, replace = FALSE) %>%
+  ggplot(aes(Reading_Time, Claps)) +
+  geom_point() +
+  labs(x = "Reading Time in Minutes",
+       y = "Claps",
+       title = "There is a sweet spot around 5-10 minutes for number of claps",
+       subtitle = "(Random sample of 10,000 articles)") 
+```
+
+Number of tags for each topic
+
+```{r}
+n_tags <- medium %>%
+  select(Tag_writing:Tag_ai) %>%
+  summarise_all(sum) %>%
+  gather()
+```
+
+```{r}
+medium %>%
+  filter(Tag_food == 1) %>%
+  summarise(avg_reading_time = mean(Reading_Time),
+            avg_claps = mean(Claps))
+```
+
+```{r}
+medium$Reading_Time <- as.numeric(medium$Reading_Time) 
+```
+
+
+Gather avg. reading time and number of claps for each tag
+
+(there's probably an easier way to do this)
+
+```{r}
+medium_tags <- medium %>%
+  select(Reading_Time, Claps, Tag_ai:Tag_writing) %>%
+  group_by_if(is.integer) %>%
+  summarise(claps = mean(Claps),
+            reading = mean(Reading_Time))
+
+medium_tags$n_tags <- rowSums( medium_tags[,1:95] )
+
+medium_tags <- medium_tags %>%
+  filter(n_tags == 1) %>%
+  select(-n_tags)
+
+medium_tags[medium_tags == 0] <- NA
+
+medium_tags <- medium_tags %>%
+  select(Tag_writing:Tag_ai, claps, reading) %>%
+  gather(na.rm = TRUE)
+
+tag_data <- cbind(medium_tags[1:95,], medium_tags[96:190,])
+tag_data <- cbind(tag_data, medium_tags[191:285,])
+
+colnames(tag_data) <- c("tag", "x", "y", "claps", "z", "reading")
+
+tag_data <- tag_data %>%
+  select(tag, claps, reading)
+
+tag_data <- cbind(tag_data, n_tags[1:95,2])
+
+tag_data$claps <- round(tag_data$claps)
+tag_data$reading <- round(tag_data$reading, digits = 2)
+
+tag_data$tag <- gsub("Tag_", "", tag_data$tag)
+
+names(tag_data)[4] <- "Articles"
+```
+
+
+Plotting the data
+
+```{r warning=FALSE, message=FALSE}
+library(plotly)
+
+p <- plot_ly(
+  tag_data, x = ~reading, y = ~claps,
+  text = ~paste("Tag: ", tag,
+                "<br>Articles: ", Articles),
+  size = ~Articles, color = ~Articles
+) %>%
+  layout(title = 'Engagement for Medium Articles',
+         yaxis = list(title = 'Average number of claps'),
+         xaxis = list(title = 'Average reading time'))
+```
+
+```{r}
+api_create(p, filename = "tidytuesday-medium")
+```
+
+Link to an interactive plotly graph
+
+[Plotly Graph](https://plot.ly/~trevin_flick/1/)
+
+
+
+
+
+
+
+
