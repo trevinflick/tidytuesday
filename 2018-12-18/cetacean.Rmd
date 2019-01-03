@@ -1,0 +1,19 @@
+---
+title: "Cetacean"
+author: "Trevin Flickinger"
+date: "12/17/2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+cetacean <- read_csv("allCetaceanData.csv")
+```
+
