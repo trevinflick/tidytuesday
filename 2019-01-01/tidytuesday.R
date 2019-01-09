@@ -38,7 +38,7 @@ tidy_by_week <- tidytuesday %>%
 tidy_by_week %>%
   mutate(week = week - 13) %>%
   ggplot(aes(x=week, y=favorite_total)) +
-  annotate("text", x=29, y=1225, 
+  annotate("text", x=29, y=1240, 
            label="David Robinson's first screencast") +
   annotate("text", x=17, y=40,
            label="#rstats p-hackathon challenge") +
