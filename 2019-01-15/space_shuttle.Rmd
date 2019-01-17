@@ -1,0 +1,73 @@
+---
+title: "Space Launches"
+author: "Trevin Flickinger"
+date: "1/16/2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(ggthemes)
+
+launches <- read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-01-15/launches.csv")
+
+agencies <- read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-01-15/agencies.csv")
+```
+
+```{r}
+launches %>%
+  count(type, sort = TRUE)
+```
+
+Let's take a look at the Space Shuttle
+
+```{r}
+space_shuttle <- launches %>%
+  filter(type == "Space Shuttle")
+
+space_shuttle <- space_shuttle %>%
+  arrange(launch_date)
+
+space_shuttle$launch_number <- c(1:135)
+```
+
+```{r}
+days_between_launches <- tail(space_shuttle$launch_date, -1) - head(space_shuttle$launch_date, -1)
+
+space_shuttle$days_til_next <- c(tail(space_shuttle$launch_date, -1) - head(space_shuttle$launch_date, -1), 0)
+
+space_shuttle %>%
+  filter(days_til_next > 0) %>%
+  ggplot(aes(days_til_next)) +
+  geom_freqpoly()
+
+```
+
+```{r}
+space_shuttle %>%
+  ggplot(aes(x = launch_date, y = launch_number)) +
+  geom_line(size = 0.5) +
+  geom_point() +
+  annotate("text", x=as.Date("1986-01-28"), y=40, 
+           label = "Challenger disaster", size = 3.5) +
+  annotate("segment", x=as.Date("1986-01-28"), 
+           xend=as.Date("1986-01-28"),
+           y=25, yend = 36, color = "black") +
+  annotate("text", x=as.Date("2003-01-16"), y=125, 
+           label = "Columbia disaster", size = 3.5) +
+  annotate("segment", x=as.Date("2003-01-16"), 
+           xend=as.Date("2003-01-16"),
+           y=113, yend = 121, color = "black") +
+  labs(title = "Space Shuttle Launches Over Time",
+       caption = "TidyTuesday 01/08/2019, source:The Economist") +
+  theme_fivethirtyeight()
+  
+ggsave("space_shuttle.png")
+  
+```
+
+
