@@ -1,0 +1,55 @@
+---
+title: 'TidyTuesday: Week 7'
+author: "Trevin Flickinger"
+date: "2/13/2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(scales)
+
+fed_rd <- read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-02-12/fed_r_d_spending.csv")
+
+energy_spend <- read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-02-12/energy_spending.csv")
+
+climate_spend <- read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-02-12/climate_spending.csv")
+```
+
+```{r}
+fed_rd_year <- fed_rd %>%
+  group_by(year) %>%
+  summarise(rd_total = sum(rd_budget),
+            total = mean(total_outlays),
+            pct_of_tot = rd_total / total)
+
+dod <- fed_rd %>%
+  filter(department == "DOD") %>%
+  mutate(pct_of_tot = rd_budget / total_outlays)
+
+non_def <- fed_rd %>%
+  filter(department != "DOD") %>%
+  group_by(year) %>%
+  summarise(rd_total = sum(rd_budget),
+            total = mean(total_outlays),
+            pct_of_tot = rd_total / total)
+
+ggplot() +
+  geom_line(data = fed_rd_year, aes(year, pct_of_tot, color = "black")) +
+  geom_line(data = dod, aes(year, pct_of_tot, color = "red")) +
+  geom_line(data = non_def, aes(year, pct_of_tot, color = "blue")) +
+  scale_y_continuous(labels = percent_format()) + 
+  scale_color_manual(name = "",
+                     values = c("black"="black","red"="red","blue"="blue"),
+                     labels = c("Total","Nondefense","Defense")) +
+  labs(title = "R&D budget as a percent of Total Federal Budget",
+       subtitle = "Data from 1976-2017",
+       caption = "@trevin_flick, source:AAAS") +
+  theme_fivethirtyeight()
+  
+```
+
