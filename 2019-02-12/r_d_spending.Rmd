@@ -51,5 +51,6 @@ ggplot() +
        caption = "@trevin_flick, source:AAAS") +
   theme_fivethirtyeight()
   
+ggsave("rd_as_pct.png")
 ```
 
