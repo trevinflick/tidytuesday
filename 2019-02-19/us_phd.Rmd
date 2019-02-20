@@ -35,8 +35,7 @@ phd_field %>%
 ```
 
 ```{r}
-phd_field %>%
-  
+ggsave("total_phds.png")
 ```
 
 
