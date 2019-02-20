@@ -1,0 +1,72 @@
+---
+title: "TidyTuesday Week 8"
+author: "Trevin Flickinger"
+date: "2/19/2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+
+phd_field <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-02-19/phd_by_field.csv")
+```
+
+```{r}
+phd_field %>%
+  group_by(field) %>%
+  summarize(sd_phd = sd(n_phds, na.rm = TRUE)) %>%
+  arrange(desc(sd_phd)) %>%
+  View()
+
+phd_field %>%
+  group_by(year) %>%
+  summarise(total_phd = sum(n_phds, na.rm = TRUE)) %>%
+  ggplot(aes(year, total_phd)) +
+  geom_line(size = 1.5, color = "blue") +
+  scale_x_continuous(breaks = seq(2008, 2016, by = 4)) +
+  labs(x = "", y = "", 
+       title = "Total number of PhD's awarded in the US per year",
+       subtitle = "Data from 2008-2017 via NSF") +
+  theme_fivethirtyeight()
+```
+
+```{r}
+phd_field %>%
+  
+```
+
+
+```{r}
+phd_field %>%
+  group_by(broad_field, year) %>%
+  summarise(total_phd = sum(n_phds, na.rm = TRUE)) %>%
+  ggplot(aes(year, total_phd, color = broad_field)) +
+  geom_line(size = 1.5) +
+  scale_x_continuous(breaks = seq(2008, 2016, by = 4)) +
+  labs(x = "", y = "", 
+       title = "Total number of PhD's awarded in the US per year",
+       subtitle = "Data from 2008-2017 via NSF")
+```
+
+```{r}
+phd_field %>%
+  group_by(field, year) %>%
+  summarise(total_phd = sum(n_phds, na.rm = TRUE)) %>%
+  filter(field %in% c("Social sciences", "Physics", "Computer science", "Clinical psychology", "Other economics")) %>%
+  ggplot(aes(year, total_phd, color = field)) +
+  geom_point() +
+  geom_line(size = 1.5) +
+  scale_x_continuous(breaks = seq(2008, 2016, by = 4)) +
+  labs(x = "", y = "", 
+       title = "Total number of PhD's awarded in the US per year",
+       subtitle = "Data from 2008-2017 via NSF")
+```
+
+```{r}
+
+```
+
