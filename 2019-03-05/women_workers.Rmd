@@ -1,0 +1,113 @@
+---
+title: "tidy tuesday march 5"
+author: "Trevin Flickinger"
+date: "3/5/2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(scales)
+library(ggthemes)
+
+jobs_gender <- read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-03-05/jobs_gender.csv")
+
+jobs_2016 <- jobs_gender %>% filter(year == 2016)
+```
+
+# Top 20 occupations by percent of female workers
+
+```{r}
+jobs_2016 %>% select(occupation, percent_female, workers_female, total_earnings, total_earnings_female) %>% 
+  arrange(desc(percent_female)) %>%
+  top_n(20, wt = percent_female)
+```
+
+# Top 20 occupations by percent of male workers
+
+```{r}
+jobs_2016 %>% 
+  mutate(percent_male = 100 - percent_female) %>%
+  select(occupation, percent_male, workers_male, total_earnings, total_earnings_male) %>% 
+  arrange(desc(percent_male)) %>%
+  top_n(20, wt = percent_male)
+```
+
+# Jobs where female workers earn more compared to men
+
+```{r}
+jobs_2016 %>% mutate(pay_diff = total_earnings_female - total_earnings_male) %>% 
+  filter(total_earnings_female > total_earnings_male) %>% 
+  View()
+```
+
+
+```{r}
+employed_gender <- read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-03-05/employed_gender.csv")
+```
+
+```{r}
+employed_gender %>%
+  mutate(last_year_female = lag(full_time_female),
+         last_year_male = lag(full_time_male),
+         female_delta = full_time_female - last_year_female,
+         male_delta = full_time_male - last_year_male) %>%
+  View()
+```
+
+
+```{r}
+employed_gender %>%
+  ggplot(aes(year)) + 
+  geom_line(aes(y = full_time_male, color = "blue")) +
+  geom_line(aes(y = full_time_female, color = "red")) +
+  geom_line(aes(y = total_full_time, color = "black")) +
+  scale_y_continuous(labels = function(x) paste0(x, "%")) +
+  scale_color_manual(name = "",
+                     values = c("red"="red","blue"="blue","black"="black"),
+                     labels = c("Total","Male","Female")) +
+  labs(title = "Percent of full time workers from 1968-2016",
+       x="", y="", caption = "source: Census Bureau") +
+  annotate("rect", xmin = 1993, xmax = 1994, ymin = 70, ymax = 93,
+        alpha = .2) +
+  theme_fivethirtyeight()
+```
+
+```{r}
+ggsave("pct_workers.png")
+```
+
+
+```{r}
+employed_gender %>%
+  ggplot(aes(year)) + 
+  geom_line(aes(y = part_time_male, color = "blue")) +
+  geom_line(aes(y = part_time_female, color = "red")) +
+  scale_y_continuous(labels = function(x) paste0(x, "%")) +
+  scale_color_manual(name = "Gender",
+                     values = c("red"="red","blue"="blue"),
+                     labels = c("Male","Female")) +
+  labs(title = "Percent of part time workers from 1968-2016",
+       x="", y="") +
+  theme_fivethirtyeight()
+```
+
+
+```{r}
+earnings_female <- read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-03-05/earnings_female.csv")
+```
+
+```{r}
+earnings_female %>%
+  ggplot(aes(Year, percent, color = group)) +
+  geom_line(size = ifelse(earnings_female$group == "25-34 years", 1.5, 1.0))
+```
+
+
+
+
+
