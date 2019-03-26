@@ -1,0 +1,79 @@
+---
+title: "traffic stops"
+author: "Trevin Flickinger"
+date: "3/19/2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(leaflet)
+library(lubridate)
+library(tidyverse)
+library(maps)
+library(ggmap)
+library(mapdata)
+library(maptools)
+library(ggthemes)
+
+combined_data <- readr::read_csv("https://raw.githubusercontent.com/5harad/openpolicing/master/results/data_for_figures/combined_data.csv")
+
+ohio <- combined_data %>% filter(state == "OH")
+
+ohio$location <- gsub("COUNTY", "", ohio$location)
+
+ohio$subregion <- tolower(ohio$location)
+```
+
+```{r}
+oh_counties <- subset(map_data("county"), region == "ohio")
+
+ohio_black <- ohio_data %>% filter(driver_race == "Black")
+
+my.df <- left_join(oh_counties, ohio_black, by = "subregion")
+
+```
+
+# County data
+
+```{r}
+library(sp)
+getLabelPoint <- # Returns a county-named list of label points
+function(county) {Polygon(county[c('long', 'lat')])@labpt}
+
+oh_counties$county = str_to_title(oh_counties$subregion)
+
+centroids = by(oh_counties, oh_counties$county, getLabelPoint)     # Returns list
+centroids2 <- do.call("rbind.data.frame", centroids)  # Convert to Data Frame
+centroids2$county = rownames(centroids)
+names(centroids2) <- c('clong', 'clat', "county") 
+```
+
+```{r}
+ggplot() +
+  geom_polygon(data = my.df, aes(x = long, y = lat, 
+              group = factor(group), fill = arrest_rate), color = "black") +   
+              coord_fixed(1.3) + 
+              geom_text(data = centroids2, aes(x = clong, y = clat, label = county), 
+              color = "black", size = 2.25) + scale_fill_distiller(palette = "Spectral") + 
+              labs(fill = "Black arrest rate") + theme_map()
+
+
+
+
+```
+
+
+# Columbus data
+
+```{r}
+cbus <- read_csv("~/Desktop/oh_columbus_2019_02_25.csv")
+
+cbus_2016 <- cbus %>%
+  filter(!is.na(lat) & !is.na(lng) & year(date) == 2016 & outcome == "arrest" &
+           subject_race == "white")
+```
+
